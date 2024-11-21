@@ -3,10 +3,16 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 from sklearn.linear_model import LinearRegression
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+
 
 class Modelo():
     def __init__(self):
-        pass
+        self.df = None
+        self.names = None
 
     def CarregarDataset(self, path):
         """
@@ -17,8 +23,8 @@ class Modelo():
         
         O dataset é carregado com as seguintes colunas: SepalLengthCm, SepalWidthCm, PetalLengthCm, PetalWidthCm e Species.
         """
-        names = ['SepalLengthCm', 'SepalWidthCm', 'PetalLengthCm', 'PetalWidthCm', 'Species']
-        self.df = pd.read_csv(path, names=names)
+        self.names = ['SepalLengthCm', 'SepalWidthCm', 'PetalLengthCm', 'PetalWidthCm', 'Species']
+        self.df = pd.read_csv(path, names=self.names)
 
     def TratamentoDeDados(self):
         """
@@ -33,7 +39,44 @@ class Modelo():
             * Explore gráficos e visualizações para obter insights sobre a distribuição dos dados.
             * Certifique-se de que os dados estão limpos e prontos para serem usados no treinamento do modelo.
         """
-        pass
+        self.df.head(6)
+        for col in self.df.columns.tolist():
+            print('Número de missing na coluna {}: {}'.format(col, self.df[col].isnull().sum()))
+        self.df.dropna()
+        self.df.info()
+
+        printar = input("Deseja printar imagens? (s/n)")
+        if printar == 's':
+            contagem = self.df['Species'].value_counts()
+            contagem.plot(kind='bar')
+            plt.xticks(rotation=0)
+            plt.title('Tipos')
+            plt.xlabel('Espécies')
+            plt.ylabel('Frequência')
+            plt.show()
+
+            cores = ['red' if s == 'Iris-versicolor' else s for s in self.df['Species']]
+            cores = ['blue' if s == 'Iris-setosa' else s for s in cores]
+            cores = ['green' if s == 'Iris-virginica' else s for s in cores]
+            plt.scatter(self.df['SepalLengthCm'],self.df['SepalWidthCm'], c = cores)
+            plt.title('Sepal')
+            plt.xlabel('SepalLengthCm')
+            plt.ylabel('SepalWidthCm')
+            plt.show()
+
+            plt.scatter(self.df['PetalLengthCm'],self.df['PetalWidthCm'], c = cores)
+            plt.title('Petal')
+            plt.xlabel('PetalLengthCm')
+            plt.ylabel('PetalWidthCm')
+            plt.show()
+
+            sns.pairplot(self.df, hue='Species')
+            plt.show()
+
+            sns.boxplot(x='Species', y='PetalLengthCm', data=self.df)
+            plt.show()
+
+        # remover outliers se der tempo
 
     def Treinamento(self):
         """
@@ -46,7 +89,11 @@ class Modelo():
         
         Nota: Esta função deve ser ajustada conforme o modelo escolhido.
         """
-        pass
+        self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(self.df.iloc[:, :-1], self.df.iloc[:,-1], test_size=0.2, random_state=42)
+
+        self.classificador = RandomForestClassifier()
+        self.classificador.fit(self.x_train, self.y_train)
+
 
     def Teste(self):
         """
@@ -55,7 +102,9 @@ class Modelo():
         Esta função deve ser implementada para testar o modelo e calcular métricas de avaliação relevantes, 
         como acurácia, precisão, ou outras métricas apropriadas ao tipo de problema.
         """
-        pass
+        self.y_pred = self.classificador.predict(self.x_test)
+        print("Acurácia:", accuracy_score(self.y_test, self.y_pred))
+
 
     def Train(self):
         """
@@ -72,9 +121,14 @@ class Modelo():
 
         # Tratamento de dados opcional, pode ser comentado se não for necessário
         self.TratamentoDeDados()
-
+        
         self.Treinamento()  # Executa o treinamento do modelo
 
 # Lembre-se de instanciar as classes após definir suas funcionalidades
 # Recomenda-se criar ao menos dois modelos (e.g., Regressão Linear e SVM) para comparar o desempenho.
 # A biblioteca já importa LinearRegression e SVC, mas outras escolhas de modelo são permitidas.
+
+leo = Modelo()
+leo.Train()
+leo.Teste()
+#print(leo.df)
