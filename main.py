@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
-
+from sklearn.preprocessing import LabelEncoder
 
 class Modelo():
     def __init__(self):
@@ -89,11 +89,24 @@ class Modelo():
         
         Nota: Esta função deve ser ajustada conforme o modelo escolhido.
         """
-        self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(self.df.iloc[:, :-1], self.df.iloc[:,-1], test_size=0.2, random_state=42)
+        self.label_encoder_flor = LabelEncoder()
+        # self.y = self.label_encoder_flor.fit_transform(self.y)
 
-        self.classificador = RandomForestClassifier()
-        self.classificador.fit(self.x_train, self.y_train)
+        self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(self.df.iloc[:, :-1], self.label_encoder_flor.fit_transform(self.df.iloc[:,-1]), test_size=0.35, random_state=42)
 
+        print("""Modelos utilizados:
+              1- Random Forest
+              2- SVM - kernel linear
+              3- SVM - kernel rbf""")
+
+        self.classificadorrf = RandomForestClassifier()
+        self.classificadorrf.fit(self.x_train, self.y_train)
+
+        self.classificadorkl = SVC(kernel='linear')
+        self.classificadorkl.fit(self.x_train, self.y_train)
+
+        self.classificadorkrbf = SVC(kernel='rbf')
+        self.classificadorkrbf.fit(self.x_train, self.y_train)
 
     def Teste(self):
         """
@@ -102,8 +115,14 @@ class Modelo():
         Esta função deve ser implementada para testar o modelo e calcular métricas de avaliação relevantes, 
         como acurácia, precisão, ou outras métricas apropriadas ao tipo de problema.
         """
-        self.y_pred = self.classificador.predict(self.x_test)
-        print("Acurácia:", accuracy_score(self.y_test, self.y_pred))
+        self.y_pred = self.classificadorrf.predict(self.x_test)
+        print("Acurácia Random Forest:", accuracy_score(self.y_test, self.y_pred))
+
+        self.y_pred = self.classificadorkl.predict(self.x_test)
+        print("Acurácia kernel linear:", accuracy_score(self.y_test, self.y_pred))
+
+        self.y_pred = self.classificadorkrbf.predict(self.x_test)
+        print("Acurácia kernel rbf:", accuracy_score(self.y_test, self.y_pred))
 
 
     def Train(self):
